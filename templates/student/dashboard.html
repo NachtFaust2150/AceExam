@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard — AceExam{% endblock %}
+{% block body %}
+<div class="page-container">
+  <header class="page-header">
+    <div class="header-brand"><span>🎓</span><h2>AceExam</h2></div>
+    <div class="header-user">
+      <span class="badge badge-info">Student</span>
+      <span>{{ user.name }}</span>
+      <a href="/logout" class="btn btn-ghost btn-sm">Logout</a>
+    </div>
+  </header>
+
+  <main class="main-content" style="max-width:800px;margin:0 auto;padding:2rem;">
+    <h1>Welcome, {{ user.name }}!</h1>
+    <p class="subtitle">Here are the exams assigned by your teacher.</p>
+
+    <div class="grid-stack">
+      {% for exam in exams %}
+      <div class="card card-row">
+        <div>
+          <h3>{{ exam.title }}</h3>
+          <p class="text-muted">{{ exam.questions_count }} Questions • Assessed Online</p>
+        </div>
+        <div>
+          {% if exam.result %}
+            <span class="badge badge-success">Completed</span>
+            <div class="text-sm" style="margin-top:0.5rem;">Score: <strong>{{ exam.result.score }}/{{ exam.result.total }}</strong></div>
+          {% else %}
+            <a href="/student/exam/{{ exam.id }}" class="btn btn-primary">Start Exam</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+
+      {% if exams|length == 0 %}
+      <div class="card" style="text-align:center;padding:3rem;">
+        <span style="font-size:3rem;opacity:0.5;">📚</span>
+        <p class="text-muted" style="margin-top:1rem;">No exams are currently assigned to you.</p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

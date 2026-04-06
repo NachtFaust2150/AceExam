@@ -1,8 +1,10 @@
 import os
 import json
+import traceback
 import torch
-import torchaudio
 import torch.nn as nn
+import soundfile as sf
+import numpy as np
 
 # Rebuild the brain structure (must match Colab exactly)
 class ExamListenerNetwork(nn.Module):
@@ -29,46 +31,82 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, 'exam_listener_v1.pt')
 LABELS_PATH = os.path.join(BASE_DIR, 'class_labels.json')
 
+# Validate files exist
+if not os.path.exists(MODEL_PATH):
+    raise FileNotFoundError(f"[inference.py] Model file not found: {MODEL_PATH}")
+if not os.path.exists(LABELS_PATH):
+    raise FileNotFoundError(f"[inference.py] Labels file not found: {LABELS_PATH}")
+
 # Load the class labels
 with open(LABELS_PATH, 'r') as f:
     idx_to_class = json.load(f)
+print(f"[inference.py] Loaded {len(idx_to_class)} class labels: {list(idx_to_class.values())}")
 
 # Initialize and load the model
 num_classes = len(idx_to_class)
 model = ExamListenerNetwork(num_classes)
-model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
-model.eval()
+try:
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu'), weights_only=True))
+    model.eval()
+    print(f"[inference.py] Model loaded successfully ({os.path.getsize(MODEL_PATH)} bytes)")
+except RuntimeError as e:
+    print(f"[inference.py] ✗ MODEL ARCHITECTURE MISMATCH: {e}")
+    raise
 
-# Setup the audio transform
+# Setup the MFCC transform (matches training config)
+import torchaudio
 mfcc_transform = torchaudio.transforms.MFCC(
     sample_rate=16000, n_mfcc=40, melkwargs={"n_fft": 400, "hop_length": 160}
 )
 
+
 def predict_audio_command(audio_file_path):
-    """Takes audio path, returns predicted word."""
+    """Takes audio path (WAV), returns predicted command word."""
     try:
-        waveform, sr = torchaudio.load(audio_file_path)
+        print(f"[inference.py] Loading audio: {audio_file_path} ({os.path.getsize(audio_file_path)} bytes)")
         
-        # Standardize audio
+        # --- Use soundfile directly (bypasses broken torchaudio.load) ---
+        data, sr = sf.read(audio_file_path, dtype='float32')
+        print(f"[inference.py] soundfile loaded: shape={data.shape}, sr={sr}")
+        
+        # Convert numpy array to torch tensor
+        # soundfile returns (samples,) for mono or (samples, channels) for stereo
+        if data.ndim == 1:
+            waveform = torch.from_numpy(data).unsqueeze(0)  # (1, samples)
+        else:
+            # Stereo -> mono by averaging channels
+            waveform = torch.from_numpy(data.mean(axis=1)).unsqueeze(0)
+        
+        print(f"[inference.py] Waveform tensor: shape={waveform.shape}, sr={sr}")
+        
+        # Resample to 16kHz if needed
         if sr != 16000:
             resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=16000)
             waveform = resampler(waveform)
-        if waveform.shape[0] > 1:
-            waveform = torch.mean(waveform, dim=0, keepdim=True)
+            print(f"[inference.py] Resampled to 16kHz: shape={waveform.shape}")
             
+        # Pad or trim to exactly 1 second (16000 samples)
         num_samples = 16000
         if waveform.shape[1] > num_samples:
             waveform = waveform[:, :num_samples]
         elif waveform.shape[1] < num_samples:
             waveform = torch.nn.functional.pad(waveform, (0, num_samples - waveform.shape[1]))
+        
+        print(f"[inference.py] Final waveform: shape={waveform.shape}")
             
         mfcc = mfcc_transform(waveform).unsqueeze(0)
+        print(f"[inference.py] MFCC shape: {mfcc.shape}")
         
         with torch.no_grad():
             outputs = model(mfcc)
-            _, predicted_idx = torch.max(outputs, 1)
+            probabilities = torch.nn.functional.softmax(outputs, dim=1)
+            confidence, predicted_idx = torch.max(probabilities, 1)
             
-        return idx_to_class[str(predicted_idx.item())]
+        label = idx_to_class[str(predicted_idx.item())]
+        print(f"[inference.py] ✓ Prediction: '{label}' (confidence: {confidence.item():.2%})")
+        return label
+        
     except Exception as e:
-        print(f"Prediction Error: {e}")
+        print(f"[inference.py] ✗ Prediction Error: {e}")
+        traceback.print_exc()
         return "error"

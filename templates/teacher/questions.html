@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Questions — {{ exam.title }} — AceExam{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-header"><span>🎓</span><span class="sidebar-brand">AceExam</span></div>
+    <div class="nav-menu">
+      <a href="/teacher" class="nav-item">📊 Dashboard</a>
+      <a href="/teacher/students" class="nav-item">👥 Students</a>
+      <a href="/teacher/exams" class="nav-item active">📝 Exams</a>
+      <a href="/teacher/results" class="nav-item">📈 Results</a>
+    </div>
+    <a href="/logout" class="nav-item" style="margin-top:auto;">🚪 Logout</a>
+  </nav>
+  <main class="main-area">
+    <div class="page-top">
+      <div>
+        <a href="/teacher/exams" class="text-muted" style="font-size:0.85rem;">← Back to Exams</a>
+        <h1>{{ exam.title }}</h1>
+      </div>
+      <button class="btn btn-primary" onclick="document.getElementById('add-q-modal').style.display='flex'">+ Add Question</button>
+    </div>
+
+    <div class="grid-stack">
+      {% for q in questions %}
+      <div class="card" id="qcard-{{ q.id }}" style="padding:1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:start;">
+          <div>
+            <span class="badge badge-{{ q.difficulty or 'medium' }}">{{ q.difficulty or 'medium' }}</span>
+            <p style="margin-top:0.5rem;font-weight:600;">{{ q.text }}</p>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteQ('{{ q.id }}')">✕</button>
+        </div>
+        <div class="options-preview">
+          {% for opt in q.options %}
+          <div class="opt-row {% if ['A','B','C','D'][loop.index0] == q.correct_answer %}opt-correct{% endif %}">
+            <span class="opt-letter">{{ ['A','B','C','D'][loop.index0] }}</span> {{ opt }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+      {% if questions|length == 0 %}
+      <div class="card" style="text-align:center;padding:3rem;">
+        <p class="text-muted">No questions added yet.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Add Question Modal -->
+    <div class="modal-overlay" id="add-q-modal" style="display:none;">
+      <div class="modal-content" style="max-width:600px;">
+        <h2>Add Question</h2>
+        <form id="add-q-form">
+          <div class="form-group"><label class="form-label">Question Text</label><textarea class="form-input" name="text" rows="3" required></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Option A</label><input class="form-input" name="option_a" required></div>
+            <div class="form-group"><label class="form-label">Option B</label><input class="form-input" name="option_b" required></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Option C</label><input class="form-input" name="option_c" required></div>
+            <div class="form-group"><label class="form-label">Option D</label><input class="form-input" name="option_d" required></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Correct Answer</label>
+              <select class="form-input" name="correct_answer" required>
+                <option value="A">A</option><option value="B">B</option>
+                <option value="C">C</option><option value="D">D</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Difficulty</label>
+              <select class="form-input" name="difficulty">
+                <option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:1rem;margin-top:1rem;">
+            <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-q-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const EXAM_ID = "{{ exam.id }}";
+
+document.getElementById('add-q-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd.entries());
+  data.exam_id = EXAM_ID;
+  const res = await fetch('/api/questions', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  if (res.ok) location.reload();
+});
+
+async function deleteQ(id) {
+  if (!confirm('Delete this question?')) return;
+  await fetch('/api/questions/' + id, {method:'DELETE'});
+  document.getElementById('qcard-' + id)?.remove();
+}
+</script>
+{% endblock %}

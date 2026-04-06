@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Teachers — AceExam{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-header"><span>🎓</span><span class="sidebar-brand">AceExam</span></div>
+    <div class="nav-menu">
+      <a href="/org" class="nav-item">📊 Dashboard</a>
+      <a href="/org/teachers" class="nav-item active">👨‍🏫 Teachers</a>
+    </div>
+    <a href="/logout" class="nav-item" style="margin-top:auto;">🚪 Logout</a>
+  </nav>
+  <main class="main-area">
+    <div class="page-top">
+      <h1>Teachers</h1>
+      <button class="btn btn-primary" onclick="document.getElementById('add-modal').style.display='flex'">+ Add Teacher</button>
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Email</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for t in teachers %}
+        <tr id="row-{{ t.id }}">
+          <td>{{ t.name }}</td>
+          <td>{{ t.email }}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteTeacher('{{ t.id }}')">Delete</button></td>
+        </tr>
+        {% endfor %}
+        {% if teachers|length == 0 %}
+        <tr><td colspan="3" style="text-align:center;padding:2rem;" class="text-muted">No teachers yet.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <!-- Add Teacher Modal -->
+    <div class="modal-overlay" id="add-modal" style="display:none;">
+      <div class="modal-content">
+        <h2>Add Teacher</h2>
+        <form id="add-form">
+          <div class="form-group"><label class="form-label">Name</label><input class="form-input" name="name" required></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" name="email" required></div>
+          <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" name="password" required></div>
+          <div style="display:flex;gap:1rem;margin-top:1rem;">
+            <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add Teacher</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('add-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd.entries());
+  const res = await fetch('/api/teachers', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  if (res.ok) location.reload();
+  else { const d = await res.json(); alert(d.error || 'Failed'); }
+});
+
+async function deleteTeacher(id) {
+  if (!confirm('Delete this teacher?')) return;
+  await fetch('/api/teachers/' + id, {method:'DELETE'});
+  document.getElementById('row-' + id)?.remove();
+}
+</script>
+{% endblock %}

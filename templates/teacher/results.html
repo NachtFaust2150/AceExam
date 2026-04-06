@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Results — AceExam{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-header"><span>🎓</span><span class="sidebar-brand">AceExam</span></div>
+    <div class="nav-menu">
+      <a href="/teacher" class="nav-item">📊 Dashboard</a>
+      <a href="/teacher/students" class="nav-item">👥 Students</a>
+      <a href="/teacher/exams" class="nav-item">📝 Exams</a>
+      <a href="/teacher/results" class="nav-item active">📈 Results</a>
+    </div>
+    <a href="/logout" class="nav-item" style="margin-top:auto;">🚪 Logout</a>
+  </nav>
+  <main class="main-area">
+    <div class="page-top"><h1>Results</h1></div>
+
+    <table class="data-table">
+      <thead><tr><th>Student</th><th>Exam</th><th>Score</th><th>Time</th><th>Submitted</th></tr></thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ r.student_name }}</td>
+          <td>{{ r.exam_title }}</td>
+          <td><strong>{{ r.score }}/{{ r.total }}</strong> ({{ ((r.score / r.total) * 100) | round | int if r.total else 0 }}%)</td>
+          <td>{{ (r.time_taken // 60) }}m {{ r.time_taken % 60 }}s</td>
+          <td class="text-muted">{{ r.submitted_at[:16] }}</td>
+        </tr>
+        {% endfor %}
+        {% if results|length == 0 %}
+        <tr><td colspan="5" style="text-align:center;padding:2rem;" class="text-muted">No results yet.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </main>
+</div>
+{% endblock %}

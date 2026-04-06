@@ -1,8 +1,19 @@
 import os
 import subprocess
 import tempfile
+import traceback
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+
+# Use the bundled ffmpeg binary from imageio_ffmpeg
+try:
+    import imageio_ffmpeg
+    FFMPEG_BIN = imageio_ffmpeg.get_ffmpeg_exe()
+    print(f"[Voice AI] Using ffmpeg: {FFMPEG_BIN}")
+except ImportError:
+    FFMPEG_BIN = "ffmpeg"  # fallback to system PATH
+    print("[Voice AI] WARNING: imageio_ffmpeg not found, falling back to system ffmpeg")
+
 from core.ml_model.inference import predict_audio_command
 
 
@@ -22,13 +33,18 @@ def predict_command(request):
                 tmp.write(chunk)
             webm_path = tmp.name
 
-        print(f"[Voice AI] Received audio file: {webm_path} ({os.path.getsize(webm_path)} bytes)")
+        file_size = os.path.getsize(webm_path)
+        print(f"[Voice AI] Received audio file: {webm_path} ({file_size} bytes)")
 
-        # 2. Convert webm -> 16kHz mono WAV using ffmpeg
+        if file_size < 100:
+            print("[Voice AI] File too small, skipping")
+            return JsonResponse({"command": "silence"})
+
+        # 2. Convert webm -> 16kHz mono WAV using bundled ffmpeg
         wav_path = webm_path.replace(".webm", ".wav")
         result = subprocess.run(
             [
-                "ffmpeg", "-y",          # overwrite without asking
+                FFMPEG_BIN, "-y",        # overwrite without asking
                 "-i", webm_path,         # input
                 "-ar", "16000",          # resample to 16 kHz
                 "-ac", "1",              # mono
@@ -41,19 +57,26 @@ def predict_command(request):
         )
 
         if result.returncode != 0:
-            print(f"[Voice AI] ffmpeg error: {result.stderr[:500]}")
+            print(f"[Voice AI] ffmpeg FAILED (code {result.returncode})")
+            print(f"[Voice AI] ffmpeg stderr: {result.stderr[:500]}")
             return JsonResponse({"command": "silence", "error": "Audio conversion failed"})
 
-        print(f"[Voice AI] Converted to WAV: {wav_path} ({os.path.getsize(wav_path)} bytes)")
+        wav_size = os.path.getsize(wav_path)
+        print(f"[Voice AI] Converted to WAV: {wav_path} ({wav_size} bytes)")
+
+        if wav_size < 1000:
+            print("[Voice AI] WAV too small after conversion, likely silence")
+            return JsonResponse({"command": "silence"})
 
         # 3. Run PyTorch inference on the clean WAV
         prediction = predict_audio_command(wav_path)
-        print(f"[Voice AI] AI Prediction: {prediction}")
+        print(f"[Voice AI] ✓ AI Prediction: {prediction}")
 
         return JsonResponse({"command": prediction})
 
     except Exception as e:
-        print(f"[Voice AI] Server error: {e}")
+        print(f"[Voice AI] ✗ Server error: {e}")
+        traceback.print_exc()
         return JsonResponse({"command": "error", "detail": str(e)}, status=500)
 
     finally:

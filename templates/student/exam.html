@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}{{ exam.title }} — AceExam{% endblock %}
+{% block body %}
+<div class="exam-container" id="exam-root">
+  <!-- Header -->
+  <header class="exam-header">
+    <div class="header-brand"><span>🎓</span><h2>AceExam</h2></div>
+    <div class="exam-timer" id="exam-timer">
+      <span>⏱️</span>
+      <span id="timer-display">--:--</span>
+    </div>
+    <div class="header-user">
+      <span>{{ user.name }}</span>
+      <button class="btn btn-danger btn-sm" onclick="showReview()">Submit Exam</button>
+    </div>
+  </header>
+
+  <!-- Exam Body -->
+  <div class="exam-body">
+    <!-- Question Panel -->
+    <div class="question-panel" id="question-panel">
+      <div class="question-header">
+        <span class="question-number" id="q-counter">Question 1 of {{ questions|length }}</span>
+        <span class="badge" id="q-difficulty"></span>
+      </div>
+      <div class="question-text" id="q-text"></div>
+      <div class="options-list" id="options-list"></div>
+
+      <!-- Voice status -->
+      <div class="voice-status" id="voice-status" style="display:none;">
+        <span class="voice-dot" id="voice-dot"></span>
+        <span id="voice-label">Voice off</span>
+        <span class="voice-transcript" id="voice-transcript"></span>
+      </div>
+
+      <!-- Navigation -->
+      <div class="question-nav">
+        <button class="btn btn-primary" id="btn-prev" onclick="goPrev()">← Previous</button>
+        <button class="btn btn-primary" id="btn-next" onclick="goNext()">Next →</button>
+      </div>
+    </div>
+
+    <!-- Palette -->
+    <aside class="question-palette">
+      <h3>Questions</h3>
+      <div class="palette-grid" id="palette-grid"></div>
+      <div class="palette-legend">
+        <span><span class="legend-dot current"></span> Current</span>
+        <span><span class="legend-dot answered"></span> Answered</span>
+        <span><span class="legend-dot"></span> Unanswered</span>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Accessibility Toolbar -->
+  <div class="a11y-toolbar" id="a11y-toolbar">
+    <button class="a11y-btn" id="btn-large-text" onclick="toggleA11y('largeText')">🔤 Large Text</button>
+    <button class="a11y-btn" id="btn-contrast" onclick="toggleA11y('highContrast')">🌗 Contrast</button>
+    <button class="a11y-btn" id="btn-tts" onclick="toggleA11y('tts')">🔊 TTS</button>
+    <button class="a11y-btn" id="btn-voice" onclick="toggleA11y('voice')">🎤 Voice</button>
+    <button class="a11y-btn" id="btn-dyslexia" onclick="toggleA11y('dyslexia')">🔠 Dyslexia</button>
+    <button class="a11y-btn a11y-shortcuts-pill" onclick="toggleShortcutsPanel()">⌨ Shortcuts</button>
+  </div>
+
+  <!-- Shortcuts panel -->
+  <div class="shortcuts-panel" id="shortcuts-panel" style="display:none;">
+    <div class="panel-title">Keyboard Shortcuts</div>
+    <div class="shortcut-row"><kbd>M</kbd> <span>Reduce Motion</span></div>
+    <div class="shortcut-row"><kbd>O</kbd> <span>Colour Overlay</span></div>
+    <div class="shortcut-row"><kbd>C</kbd> <span>Colour Blind</span></div>
+    <div class="shortcut-row"><kbd>Z</kbd> <span>Zoom</span></div>
+    <div class="shortcut-row"><kbd>R</kbd> <span>Reading Ruler</span></div>
+    <div class="shortcut-row"><kbd>F</kbd> <span>Focus Mode</span></div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal-overlay" id="review-modal" style="display:none;">
+    <div class="review-screen">
+      <div class="review-header">
+        <h2>📋 Review Your Answers</h2>
+        <p id="review-summary"></p>
+      </div>
+      <div class="review-grid" id="review-grid"></div>
+      <div class="review-actions">
+        <button class="btn btn-ghost" onclick="closeReview()">← Back to Exam</button>
+        <button class="btn btn-primary" onclick="showConfirm()">Submit Exam →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay" id="confirm-modal" style="display:none;">
+    <div class="modal-content" style="text-align:center;">
+      <h2>Submit Exam?</h2>
+      <p class="text-muted" id="confirm-text"></p>
+      <div style="display:flex;justify-content:center;gap:1rem;margin-top:2rem;">
+        <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitExam()">Confirm Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Screen (hidden initially) -->
+  <div class="exam-result-container" id="result-screen" style="display:none;">
+    <div class="result-card">
+      <div class="result-icon">🎉</div>
+      <h1>Exam Submitted!</h1>
+      <div class="result-stats" id="result-stats"></div>
+      <a href="/student" class="btn btn-primary">Return to Dashboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Server-injected data
+  const QUESTIONS = {{ questions | tojson }};
+  const EXAM_ID = "{{ exam.id }}";
+  const DISABILITY_TYPE = "{{ disability_type }}";
+  const TIME_MULTIPLIER = {{ time_multiplier }};
+  const BASE_DURATION = 30 * 60; // 30 min
+</script>
+<script src="{{ url_for('static', filename='js/exam.js') }}"></script>
+<script src="{{ url_for('static', filename='js/voice.js') }}"></script>
+{% endblock %}

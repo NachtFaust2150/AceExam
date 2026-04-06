@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Organisation Dashboard — AceExam{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-header"><span>🎓</span><span class="sidebar-brand">AceExam</span></div>
+    <div class="nav-menu">
+      <a href="/org" class="nav-item active">📊 Dashboard</a>
+      <a href="/org/teachers" class="nav-item">👨‍🏫 Teachers</a>
+    </div>
+    <a href="/logout" class="nav-item" style="margin-top:auto;">🚪 Logout</a>
+  </nav>
+  <main class="main-area">
+    <div class="page-top">
+      <h1>Organisation Dashboard</h1>
+      <span class="badge badge-info">Organisation</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ teacher_count }}</div>
+        <div class="stat-label">Teachers</div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

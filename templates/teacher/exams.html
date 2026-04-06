@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Exams — AceExam{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-header"><span>🎓</span><span class="sidebar-brand">AceExam</span></div>
+    <div class="nav-menu">
+      <a href="/teacher" class="nav-item">📊 Dashboard</a>
+      <a href="/teacher/students" class="nav-item">👥 Students</a>
+      <a href="/teacher/exams" class="nav-item active">📝 Exams</a>
+      <a href="/teacher/results" class="nav-item">📈 Results</a>
+    </div>
+    <a href="/logout" class="nav-item" style="margin-top:auto;">🚪 Logout</a>
+  </nav>
+  <main class="main-area">
+    <div class="page-top">
+      <h1>Exams</h1>
+      <button class="btn btn-primary" onclick="document.getElementById('create-modal').style.display='flex'">+ Create Exam</button>
+    </div>
+
+    <div class="grid-stack">
+      {% for exam in exams %}
+      <div class="card card-row">
+        <div>
+          <h3>{{ exam.title }}</h3>
+          <p class="text-muted">{{ exam.questions_count }} Questions</p>
+        </div>
+        <div style="display:flex;gap:0.5rem;">
+          <a href="/teacher/exams/{{ exam.id }}/questions" class="btn btn-primary btn-sm">Questions</a>
+          <button class="btn btn-ghost btn-sm" onclick="openAssign('{{ exam.id }}')">Assign</button>
+        </div>
+      </div>
+      {% endfor %}
+      {% if exams|length == 0 %}
+      <div class="card" style="text-align:center;padding:3rem;">
+        <p class="text-muted">No exams created yet.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Create Exam Modal -->
+    <div class="modal-overlay" id="create-modal" style="display:none;">
+      <div class="modal-content">
+        <h2>Create Exam</h2>
+        <form id="create-form">
+          <div class="form-group"><label class="form-label">Exam Title</label><input class="form-input" name="title" required></div>
+          <div style="display:flex;gap:1rem;margin-top:1rem;">
+            <button type="button" class="btn btn-ghost" onclick="document.getElementById('create-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Assign Modal -->
+    <div class="modal-overlay" id="assign-modal" style="display:none;">
+      <div class="modal-content">
+        <h2>Assign Students</h2>
+        <div id="assign-list"></div>
+        <button class="btn btn-ghost" style="margin-top:1rem;" onclick="document.getElementById('assign-modal').style.display='none'">Close</button>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const STUDENTS = {{ students | tojson }};
+
+document.getElementById('create-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const title = e.target.title.value;
+  const res = await fetch('/api/exams', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title})});
+  if (res.ok) location.reload();
+});
+
+function openAssign(examId) {
+  const list = document.getElementById('assign-list');
+  list.innerHTML = STUDENTS.map(s => {
+    const assigned = (s.assigned_exams || []).includes(examId);
+    return `<div class="assign-row">
+      <span>${s.name} (${s.email})</span>
+      <button class="btn btn-sm ${assigned ? 'btn-danger' : 'btn-primary'}" onclick="toggleAssign('${examId}','${s.id}',${!assigned},this)">
+        ${assigned ? 'Unassign' : 'Assign'}
+      </button>
+    </div>`;
+  }).join('') || '<p class="text-muted">No students available.</p>';
+  document.getElementById('assign-modal').style.display = 'flex';
+}
+
+async function toggleAssign(examId, studentId, assign, btn) {
+  await fetch(`/api/exams/${examId}/assign`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({student_id: studentId, assign})
+  });
+  btn.textContent = assign ? 'Unassign' : 'Assign';
+  btn.className = `btn btn-sm ${assign ? 'btn-danger' : 'btn-primary'}`;
+  // Update local data
+  const student = STUDENTS.find(s => s.id === studentId);
+  if (student) {
+    if (assign) { (student.assigned_exams = student.assigned_exams || []).push(examId); }
+    else { student.assigned_exams = (student.assigned_exams || []).filter(e => e !== examId); }
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Students — AceExam{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-header"><span>🎓</span><span class="sidebar-brand">AceExam</span></div>
+    <div class="nav-menu">
+      <a href="/teacher" class="nav-item">📊 Dashboard</a>
+      <a href="/teacher/students" class="nav-item active">👥 Students</a>
+      <a href="/teacher/exams" class="nav-item">📝 Exams</a>
+      <a href="/teacher/results" class="nav-item">📈 Results</a>
+    </div>
+    <a href="/logout" class="nav-item" style="margin-top:auto;">🚪 Logout</a>
+  </nav>
+  <main class="main-area">
+    <div class="page-top">
+      <h1>Students</h1>
+      <button class="btn btn-primary" onclick="document.getElementById('add-modal').style.display='flex'">+ Add Student</button>
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Email</th><th>Disability</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for s in students %}
+        <tr id="row-{{ s.id }}">
+          <td>{{ s.name }}</td>
+          <td>{{ s.email }}</td>
+          <td><span class="badge">{{ s.disability_type or 'none' }}</span></td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteStudent('{{ s.id }}')">Delete</button></td>
+        </tr>
+        {% endfor %}
+        {% if students|length == 0 %}
+        <tr><td colspan="4" style="text-align:center;padding:2rem;" class="text-muted">No students yet.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <!-- Add Student Modal -->
+    <div class="modal-overlay" id="add-modal" style="display:none;">
+      <div class="modal-content">
+        <h2>Add Student</h2>
+        <form id="add-form">
+          <div class="form-group"><label class="form-label">Name</label><input class="form-input" name="name" required></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" name="email" required></div>
+          <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" name="password" required></div>
+          <div class="form-group">
+            <label class="form-label">Disability Type</label>
+            <select class="form-input" name="disabilityType">
+              <option value="none">None</option>
+              <option value="blind">Blind</option>
+              <option value="visual_impairment">Visual Impairment</option>
+              <option value="dyslexia">Dyslexia</option>
+              <option value="motor">Motor Impairment</option>
+              <option value="adhd">ADHD</option>
+              <option value="hearing">Hearing Impairment</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:1rem;margin-top:1rem;">
+            <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add Student</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('add-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd.entries());
+  const res = await fetch('/api/students', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  if (res.ok) location.reload();
+  else { const d = await res.json(); alert(d.error || 'Failed'); }
+});
+
+async function deleteStudent(id) {
+  if (!confirm('Delete this student?')) return;
+  await fetch('/api/students/' + id, {method:'DELETE'});
+  document.getElementById('row-' + id)?.remove();
+}
+</script>
+{% endblock %}

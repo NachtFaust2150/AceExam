@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard — AceExam{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-header"><span>🎓</span><span class="sidebar-brand">AceExam</span></div>
+    <div class="nav-menu">
+      <a href="/teacher" class="nav-item active">📊 Dashboard</a>
+      <a href="/teacher/students" class="nav-item">👥 Students</a>
+      <a href="/teacher/exams" class="nav-item">📝 Exams</a>
+      <a href="/teacher/results" class="nav-item">📈 Results</a>
+    </div>
+    <a href="/logout" class="nav-item" style="margin-top:auto;">🚪 Logout</a>
+  </nav>
+  <main class="main-area">
+    <div class="page-top">
+      <h1>Dashboard</h1>
+      <span class="badge badge-info">Teacher</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ student_count }}</div>
+        <div class="stat-label">Students</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ exam_count }}</div>
+        <div class="stat-label">Exams</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ result_count }}</div>
+        <div class="stat-label">Submissions</div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
