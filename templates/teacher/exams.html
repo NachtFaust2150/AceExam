@@ -32,8 +32,10 @@
       </div>
       {% endfor %}
       {% if exams|length == 0 %}
-      <div class="card" style="text-align:center;padding:3rem;">
-        <p class="text-muted">No exams created yet.</p>
+      <div class="empty-state card" style="grid-column: 1 / -1;">
+        <div class="empty-state-icon">📝</div>
+        <h3>No Exams Created</h3>
+        <p>Click "Create Exam" above to start building your first assessment.</p>
       </div>
       {% endif %}
     </div>

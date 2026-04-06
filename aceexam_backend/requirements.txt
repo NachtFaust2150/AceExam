@@ -7,4 +7,4 @@ django-cors-headers>=4.3
 PyJWT>=2.8
 
 soundfile>=0.12
-imageio-ffmpeg>=0.5
+imageio-ffmpeg>=0.5     

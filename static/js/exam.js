@@ -16,18 +16,19 @@ const a11y = {
   largeText: false, highContrast: false, tts: false,
   voice: false, dyslexia: false,
   reduceMotion: false, colorOverlay: false, colorBlind: false,
-  zoom: false, readingRuler: false, focusMode: false
+  zoom: false, readingRuler: false, focusMode: false,
+  visualAlerts: false, captions: false
 };
 
 
-// Auto-enable accessibility based on disability
+// Auto-enable accessibility based on disability mapper
 const autoProfiles = {
-  blind: ['tts', 'voice', 'highContrast'],
-  visual_impairment: ['largeText'],
-  dyslexia: ['dyslexia', 'largeText'],
-  motor: ['voice', 'largeText'],
-  adhd: [],
-  hearing: [],
+  blind: ['tts', 'voice', 'highContrast', 'zoom'],
+  visual_impairment: ['largeText', 'zoom', 'colorOverlay'], // focus highlight -> colorOverlay
+  dyslexia: ['dyslexia', 'largeText', 'readingRuler'],
+  motor: ['voice', 'largeText', 'focusMode'],
+  adhd: ['focusMode', 'colorOverlay', 'reduceMotion'], // distraction free + focus highlight
+  hearing: ['visualAlerts', 'captions'],
   none: []
 };
 (autoProfiles[DISABILITY_TYPE] || []).forEach(k => {
@@ -225,6 +226,8 @@ function applyA11y() {
   document.body.classList.toggle('color-blind', a11y.colorBlind);
   document.body.classList.toggle('focus-mode', a11y.focusMode);
   document.body.classList.toggle('zoom-enabled', a11y.zoom);
+  document.body.classList.toggle('visual-alerts', a11y.visualAlerts);
+  document.body.classList.toggle('captions-enabled', a11y.captions);
 
   // Update toolbar button active states
   document.getElementById('btn-large-text')?.classList.toggle('active', a11y.largeText);

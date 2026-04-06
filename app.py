@@ -71,14 +71,6 @@ def seed_data():
     else:
         org_id = db.users.find_one({"email": "org@ace.com"})["_id"]
 
-    # Add KLH Organization
-    if not db.users.find_one({"email": "klhaziznagar@gmail.com"}):
-        db.users.insert_one({
-            "name": "KLH", "email": "klhaziznagar@gmail.com",
-            "password": _hash("2410030377"), "role": "organisation",
-            "disability_type": "none", "created_by": None, "assigned_exams": None
-        })
-
     if not db.users.find_one({"email": "teacher@ace.com"}):
         teacher_id = db.users.insert_one({
             "name": "Demo Teacher", "email": "teacher@ace.com",

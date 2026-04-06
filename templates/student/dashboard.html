@@ -34,9 +34,10 @@
       {% endfor %}
 
       {% if exams|length == 0 %}
-      <div class="card" style="text-align:center;padding:3rem;">
-        <span style="font-size:3rem;opacity:0.5;">📚</span>
-        <p class="text-muted" style="margin-top:1rem;">No exams are currently assigned to you.</p>
+      <div class="empty-state card" style="grid-column: 1 / -1; min-height: 400px;">
+        <div class="empty-state-icon" style="font-size: 4rem;">🎉</div>
+        <h3>No Exams Assigned!</h3>
+        <p>You have no pending assignments. Take a break or check back later.</p>
       </div>
       {% endif %}
     </div>

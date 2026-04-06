@@ -18,22 +18,29 @@
       <button class="btn btn-primary" onclick="document.getElementById('add-modal').style.display='flex'">+ Add Student</button>
     </div>
 
-    <table class="data-table">
-      <thead><tr><th>Name</th><th>Email</th><th>Disability</th><th>Actions</th></tr></thead>
-      <tbody>
-        {% for s in students %}
-        <tr id="row-{{ s.id }}">
-          <td>{{ s.name }}</td>
-          <td>{{ s.email }}</td>
-          <td><span class="badge">{{ s.disability_type or 'none' }}</span></td>
-          <td><button class="btn btn-danger btn-sm" onclick="deleteStudent('{{ s.id }}')">Delete</button></td>
-        </tr>
-        {% endfor %}
-        {% if students|length == 0 %}
-        <tr><td colspan="4" style="text-align:center;padding:2rem;" class="text-muted">No students yet.</td></tr>
-        {% endif %}
-      </tbody>
-    </table>
+    {% if students|length > 0 %}
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>Email</th><th>Disability</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for s in students %}
+          <tr id="row-{{ s.id }}">
+            <td>{{ s.name }}</td>
+            <td>{{ s.email }}</td>
+            <td><span class="badge">{{ s.disability_type or 'none' }}</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="deleteStudent('{{ s.id }}')">Delete</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">👥</div>
+      <h3>No Students Yet</h3>
+      <p>Click "Add Student" above to enroll your first student.</p>
+    </div>
+    {% endif %}
 
     <!-- Add Student Modal -->
     <div class="modal-overlay" id="add-modal" style="display:none;">
