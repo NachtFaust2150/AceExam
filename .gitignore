@@ -1,7 +1,11 @@
-.venv/
 __pycache__/
 *.pyc
 node_modules/
 .env
 db.sqlite3
 *.pt
+
+# Virtual environments
+venv/
+.venv/
+env/
