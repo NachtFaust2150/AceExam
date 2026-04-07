@@ -85,13 +85,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Django uses SQLite for its internal tables (sessions, admin, etc.).
+# All application data is stored in MongoDB via PyMongo (see core/db.py).
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'aceexam',          # your MongoDB database name
-        'CLIENT': {
-            'host': os.getenv('MONGO_URI'),
-        }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

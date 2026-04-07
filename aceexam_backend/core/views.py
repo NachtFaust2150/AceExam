@@ -14,8 +14,6 @@ except ImportError:
     FFMPEG_BIN = "ffmpeg"  # fallback to system PATH
     print("[Voice AI] WARNING: imageio_ffmpeg not found, falling back to system ffmpeg")
 
-from core.ml_model.inference import predict_audio_command
-
 
 @csrf_exempt
 def predict_command(request):
@@ -69,6 +67,7 @@ def predict_command(request):
             return JsonResponse({"command": "silence"})
 
         # 3. Run PyTorch inference on the clean WAV
+        from core.ml_model.inference import predict_audio_command
         prediction = predict_audio_command(wav_path)
         print(f"[Voice AI] ✓ AI Prediction: {prediction}")
 

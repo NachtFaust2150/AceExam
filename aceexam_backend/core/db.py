@@ -4,9 +4,13 @@ Database: aceexam_db
 Collections: users, questions, exam_results
 """
 import hashlib
+import os
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
-MONGO_URI = "mongodb://localhost:27017"
+load_dotenv()
+
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
 DB_NAME = "aceexam_db"
 
 _client = None
