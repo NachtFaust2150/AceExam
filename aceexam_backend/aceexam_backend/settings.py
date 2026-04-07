@@ -80,10 +80,18 @@ WSGI_APPLICATION = 'aceexam_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'djongo',
+        'NAME': 'aceexam',          # your MongoDB database name
+        'CLIENT': {
+            'host': os.getenv('MONGO_URI'),
+        }
     }
 }
 
