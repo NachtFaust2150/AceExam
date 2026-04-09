@@ -328,9 +328,9 @@ button,input,select,textarea { font-family:inherit; }
 
 /* ===================== HIGH CONTRAST ===================== */
 body.high-contrast {
-  --bg-main:#000; --bg-surface:#111; --bg-surface-hover:#222;
-  --text-main:#fff; --text-muted:#ccc; --border:#444;
-  --primary:#818cf8; --primary-hover:#a5b4fc; --primary-light:#1e1b4b;
+  --bg-main: #000000; --bg-surface: #000000; --bg-surface-hover: #111111;
+  --text-main: #FFFFFF; --text-muted: #FFD700; --border: #FFD700;
+  --primary: #2563EB; --primary-hover: #1d4ed8; --primary-light: #111827;
 }
 body.high-contrast .a11y-toolbar { background:rgba(17,17,17,0.95); }
 body.high-contrast .shortcuts-panel { background:rgba(17,17,17,0.95); }
@@ -345,9 +345,12 @@ body.reduce-motion * {
   transition: none !important;
 }
 
-/* Color Blind (example filter) */
+/* Color Blind Safe Palette */
 body.color-blind {
-  filter: contrast(1.2) saturate(1.5) grayscale(0.2);
+  --primary: #2563EB; --primary-hover: #1d4ed8;
+  --success: #F59E0B; --danger: #6B7280;
+  --text-main: #111827; --text-muted: #6B7280;
+  --bg-main: #FFFFFF; --bg-surface: #FFFFFF;
 }
 
 /* Zoom */
@@ -357,6 +360,14 @@ body.zoom-enabled .exam-body {
 }
 
 /* Focus Mode */
+body.focus-mode {
+  --bg-main: #F3F4F6;
+  --bg-surface: #FFFFFF;
+  --text-main: #111827;
+  --primary: #4B5563;
+  --primary-hover: #374151;
+  --primary-light: #e5e7eb;
+}
 body.focus-mode .exam-header,
 body.focus-mode .question-palette,
 body.focus-mode .a11y-toolbar {
@@ -413,7 +424,13 @@ body.focus-mode .question-palette {
 }
 
 /* ===================== DYSLEXIA ===================== */
-body.dyslexia-font { font-family: 'Comic Sans MS', 'OpenDyslexic', sans-serif; letter-spacing:0.05em; word-spacing:0.15em; }
+body.dyslexia-font { 
+  font-family: 'Comic Sans MS', 'OpenDyslexic', sans-serif; 
+  letter-spacing:0.05em; word-spacing:0.15em; 
+  --bg-main: #FFF7ED; --bg-surface: #FFF7ED; 
+  --text-main: #1F2937; --text-muted: #4B5563;
+  --primary: #2563EB; --primary-light: #FACC15;
+}
 
 
 /* ===================== RESPONSIVE ===================== */

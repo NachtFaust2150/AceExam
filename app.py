@@ -18,14 +18,30 @@ from flask import (
 )
 from bson import ObjectId
 from pymongo import MongoClient
+from dotenv import load_dotenv
+import urllib.parse
+
+# Load environment variables from .env
+load_dotenv()
 
 # --------------- App Setup ---------------
 app = Flask(__name__)
-app.secret_key = "aceexam-flask-secret-key"
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "aceexam-flask-secret-key")
 
 # --------------- MongoDB ---------------
-MONGO_URI = "mongodb://localhost:27017"
-DB_NAME = "aceexam_db"
+user = os.getenv("MONGO_USER")
+pswd = os.getenv("MONGO_PASS")
+host = os.getenv("MONGO_HOST")
+opts = os.getenv("MONGO_OPTIONS", "appName=AceExam")
+
+if user and pswd and host:
+    # URL encode the password to handle special characters (@, #, etc.)
+    safe_pswd = urllib.parse.quote_plus(pswd)
+    MONGO_URI = f"mongodb+srv://{user}:{safe_pswd}@{host}/?{opts}"
+else:
+    MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+
+DB_NAME = os.getenv("DB_NAME", "aceexam_db")
 _client = MongoClient(MONGO_URI)
 db = _client[DB_NAME]
 

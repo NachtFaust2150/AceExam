@@ -1,0 +1,9 @@
+flask
+pymongo
+python-dotenv
+dnspython
+SpeechRecognition
+soundfile
+imageio-ffmpeg
+gunicorn
+bson
