@@ -20,6 +20,7 @@ from bson import ObjectId
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import urllib.parse
+from whitenoise import WhiteNoise
 
 # Load environment variables from .env
 load_dotenv()
@@ -27,6 +28,9 @@ load_dotenv()
 # --------------- App Setup ---------------
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "aceexam-flask-secret-key")
+
+# Integrate WhiteNoise for static file serving in production
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/', prefix='static/')
 
 # --------------- MongoDB ---------------
 user = os.getenv("MONGO_USER")

@@ -7,3 +7,4 @@ soundfile
 imageio-ffmpeg
 gunicorn
 bson
+whitenoise
